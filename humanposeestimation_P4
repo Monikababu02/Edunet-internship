@@ -1,0 +1,71 @@
+import cv2
+import numpy as np
+
+# Paths to the pre-trained OpenPose model files
+proto_file = "pose_deploy_linevec_faster_4_stages.prototxt"
+weights_file = "pose_iter_160000.caffemodel"
+
+# List of body parts
+BODY_PARTS = ["Nose", "Neck", "Right Shoulder", "Right Elbow", "Right Wrist",
+              "Left Shoulder", "Left Elbow", "Left Wrist", "Right Hip", "Right Knee",
+              "Right Ankle", "Left Hip", "Left Knee", "Left Ankle", "Right Eye",
+              "Left Eye", "Right Ear", "Left Ear"]
+
+# Pairs of body parts that form skeletal connections
+POSE_PAIRS = [["Neck", "Right Shoulder"], ["Right Shoulder", "Right Elbow"],
+              ["Right Elbow", "Right Wrist"], ["Neck", "Left Shoulder"],
+              ["Left Shoulder", "Left Elbow"], ["Left Elbow", "Left Wrist"],
+              ["Neck", "Right Hip"], ["Right Hip", "Right Knee"], 
+              ["Right Knee", "Right Ankle"], ["Neck", "Left Hip"],
+              ["Left Hip", "Left Knee"], ["Left Knee", "Left Ankle"],
+              ["Neck", "Nose"], ["Nose", "Right Eye"], ["Right Eye", "Right Ear"],
+              ["Nose", "Left Eye"], ["Left Eye", "Left Ear"]]
+
+# Load the neural network
+net = cv2.dnn.readNetFromCaffe(proto_file, weights_file)
+
+# Read input image
+input_image = "input_sample.jpg"  # Path to your input image
+image = cv2.imread(input_image)
+height, width, _ = image.shape
+
+# Prepare the input for the model
+input_blob = cv2.dnn.blobFromImage(image, 1.0 / 255, (368, 368), (0, 0, 0), swapRB=False, crop=False)
+net.setInput(input_blob)
+
+# Perform inference
+output = net.forward()
+
+# Extract key points
+points = []
+for i in range(len(BODY_PARTS)):
+    # Confidence map of the corresponding body part
+    confidence_map = output[0, i, :, :]
+    min_val, prob, min_loc, point = cv2.minMaxLoc(confidence_map)
+
+    # Scale the point to fit the original image
+    x = int((width * point[0]) / output.shape[3])
+    y = int((height * point[1]) / output.shape[2])
+
+    if prob > 0.1:  # Confidence threshold
+        points.append((x, y))
+        cv2.circle(image, (x, y), 5, (0, 255, 0), thickness=-1, lineType=cv2.FILLED)
+    else:
+        points.append(None)
+
+# Draw skeleton
+for pair in POSE_PAIRS:
+    part_a = BODY_PARTS.index(pair[0])
+    part_b = BODY_PARTS.index(pair[1])
+
+    if points[part_a] and points[part_b]:
+        cv2.line(image, points[part_a], points[part_b], (0, 255, 255), 2, lineType=cv2.LINE_AA)
+        cv2.circle(image, points[part_a], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+        cv2.circle(image, points[part_b], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
+
+# Save and display the result
+output_image = "output_sample.jpg"
+cv2.imwrite(output_image, image)
+cv2.imshow("Pose Estimation", image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
