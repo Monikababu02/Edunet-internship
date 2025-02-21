@@ -1,1 +1,17 @@
+Human Pose Estimation: Overview
+Human Pose Estimation (HPE) is a computer vision task that predicts the keypoints (joints) of a human body from an image or video. It is widely used in applications such as action recognition, augmented reality, healthcare monitoring, and sports analytics.
 
+Types of Pose Estimation
+2D Pose Estimation: Detects keypoints in a 2D image (e.g., OpenPose, PoseNet).
+3D Pose Estimation: Predicts keypoints in 3D space (e.g., MediaPipe, HRNet).
+
+Single-Person vs Multi-Person Pose Estimation:
+Single-Person: Detects keypoints for one person.
+Multi-Person: Detects multiple people and assigns keypoints correctly.
+
+Popular Human Pose Estimation Models
+
+OpenPose (by CMU): Detects multiple persons' keypoints in real-time.
+PoseNet (by Google): Lightweight model for mobile applications.
+HRNet: High-resolution deep learning model for accurate keypoint detection.
+MediaPipe (by Google): Real-time pose estimation framework.
